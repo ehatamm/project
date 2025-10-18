@@ -1,6 +1,9 @@
 #!/bin/bash
+set -e
 
 # Project Management Application - Quick Start Script
+
+COMPOSE_FILE='infra/master-compose.yml'
 
 echo "======================================"
 echo "Project Management Application Setup"
@@ -27,7 +30,7 @@ echo ""
 echo "Starting all services..."
 echo ""
 
-docker compose -f infra/master-compose.yml up -d
+docker compose -f "$COMPOSE_FILE" up -d
 
 echo ""
 echo "======================================"
@@ -40,8 +43,8 @@ echo "  - Backend:   http://localhost:8080"
 echo "  - Database:  localhost:5432"
 echo ""
 echo "To stop the application, run:"
-echo "  docker compose -f infra/master-compose.yml down"
+echo "  docker compose -f $COMPOSE_FILE down"
 echo ""
 echo "To view logs:"
-echo "  docker compose -f infra/master-compose.yml logs -f"
+echo "  docker compose -f $COMPOSE_FILE logs -f"
 echo ""
