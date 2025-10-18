@@ -4,6 +4,57 @@ set -e
 # Project Management Application - Quick Start Script
 
 COMPOSE_FILE='infra/master-compose.yml'
+CACHE_DIR='.docker-cache'
+
+# Function to clear all caches
+clear_caches() {
+    echo "🧹 Clearing all caches..."
+    
+    # Clear Docker build cache
+    docker builder prune -f >/dev/null 2>&1 || true
+    
+    # Clear dependency cache
+    rm -rf "$CACHE_DIR" 2>/dev/null || true
+    
+    # Clear Docker volumes (optional - uncomment if needed)
+    # docker volume prune -f >/dev/null 2>&1 || true
+    
+    echo "✓ Caches cleared"
+}
+
+# Function to check if dependencies have changed
+check_dependency_changes() {
+    local rebuild_needed=false
+    
+    # Create cache directory if it doesn't exist
+    mkdir -p "$CACHE_DIR"
+    
+    # Check backend dependencies
+    if [ -f "backend/pom.xml" ]; then
+        local backend_hash=$(md5sum backend/pom.xml | cut -d' ' -f1)
+        local backend_cache="$CACHE_DIR/backend-deps.md5"
+        
+        if [ ! -f "$backend_cache" ] || [ "$backend_hash" != "$(cat "$backend_cache" 2>/dev/null)" ]; then
+            echo "🔄 Backend dependencies changed - forcing complete rebuild"
+            echo "$backend_hash" > "$backend_cache"
+            rebuild_needed=true
+        fi
+    fi
+    
+    # Check frontend dependencies
+    if [ -f "frontend/package.json" ]; then
+        local frontend_hash=$(md5sum frontend/package.json | cut -d' ' -f1)
+        local frontend_cache="$CACHE_DIR/frontend-deps.md5"
+        
+        if [ ! -f "$frontend_cache" ] || [ "$frontend_hash" != "$(cat "$frontend_cache" 2>/dev/null)" ]; then
+            echo "🔄 Frontend dependencies changed - forcing complete rebuild"
+            echo "$frontend_hash" > "$frontend_cache"
+            rebuild_needed=true
+        fi
+    fi
+    
+    echo "$rebuild_needed"
+}
 
 # Function to restart a specific service
 restart_service() {
@@ -13,6 +64,12 @@ restart_service() {
     echo "Waiting for $service to stabilize..."
     sleep 5
 }
+
+# Handle command line arguments
+if [ "$1" = "--clear-cache" ] || [ "$1" = "-c" ]; then
+    clear_caches
+    echo ""
+fi
 
 echo "======================================"
 echo "Project Management Application Setup"
@@ -48,9 +105,35 @@ if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
 fi
 echo ""
 
+# Check if dependencies have changed
+echo "Checking for dependency changes..."
+REBUILD_NEEDED=$(check_dependency_changes)
+
 # Start the application
 echo "Starting all services..."
-echo "This may take 2-3 minutes on first run..."
+if [ "$REBUILD_NEEDED" = "true" ]; then
+    echo "🔄 Dependencies changed - forcing complete rebuild with fresh dependencies..."
+    echo "This may take 3-5 minutes..."
+    
+    # Stop services first
+    echo "Stopping services..."
+    docker compose -f "$COMPOSE_FILE" down >/dev/null 2>&1 || true
+    
+    # Remove images to force complete rebuild
+    echo "Removing images to force rebuild..."
+    docker rmi project-api project-web >/dev/null 2>&1 || true
+    
+    # Clear Docker build cache
+    echo "Clearing Docker build cache..."
+    docker builder prune -f >/dev/null 2>&1 || true
+    
+    # Build with no cache to force Maven/npm to re-download dependencies
+    echo "Building with --no-cache..."
+    docker compose -f "$COMPOSE_FILE" build --no-cache --pull
+else
+    echo "✓ No dependency changes detected"
+    echo "This may take 2-3 minutes on first run..."
+fi
 echo ""
 
 # Start services with better error handling
