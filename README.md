@@ -43,18 +43,33 @@ project/
 
 ## Running the Application
 
-### Using Master Compose (Recommended)
+### Quick Start (Recommended)
 
-Start all services at once from the project root:
+Use the provided startup script for the easiest experience:
 
 ```bash
-docker compose -f infra/master-compose.yml up -d
+./start.sh
 ```
+
+This script will:
+- Check for Docker and Docker Compose installation
+- Detect port conflicts
+- Start all services with proper dependency handling
+- Verify service health and endpoint availability
+- Provide troubleshooting guidance if needed
 
 Stop all services:
 
 ```bash
 docker compose -f infra/master-compose.yml down
+```
+
+### Manual Startup
+
+Start all services manually:
+
+```bash
+docker compose -f infra/master-compose.yml up -d
 ```
 
 ### Running Services Individually
@@ -117,3 +132,39 @@ DB_PASSWORD=postgres
 ```
 API_BASE_URL=http://localhost:8080
 ```
+
+## Troubleshooting
+
+If you encounter issues starting the application:
+
+1. **Check service status**:
+   ```bash
+   docker compose -f infra/master-compose.yml ps
+   ```
+
+2. **View service logs**:
+   ```bash
+   docker compose -f infra/master-compose.yml logs
+   ```
+
+3. **Check specific service logs**:
+   ```bash
+   docker compose -f infra/master-compose.yml logs api
+   docker compose -f infra/master-compose.yml logs db
+   docker compose -f infra/master-compose.yml logs web
+   ```
+
+4. **Test endpoints manually**:
+   ```bash
+   curl http://localhost:8080/api/projects
+   curl http://localhost:3000
+   ```
+
+5. **Reset everything**:
+   ```bash
+   docker compose -f infra/master-compose.yml down -v
+   docker system prune -a
+   ./start.sh
+   ```
+
+For detailed troubleshooting steps, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
