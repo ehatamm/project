@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (this layer will be cached if package.json doesn't change)
-RUN npm ci --only=production --silent
+RUN npm ci --silent
 
 # Copy source code
 COPY . .
