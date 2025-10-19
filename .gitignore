@@ -16,5 +16,12 @@ logs/
 .env.local
 .env.*.local
 
+# AI Development Tools (local only)
+guardrails/
+.cursorrules
+.dev-context.md
+next-steps.md
+next-steps-be.md
+
 # Docker cache
 .docker-cache/

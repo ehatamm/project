@@ -4,7 +4,7 @@ Full-stack application for managing projects with a REST API backend and modern 
 
 ## Architecture
 
-- **Backend**: Java 21 + Spring Boot 3.3 + PostgreSQL 16
+- **Backend**: Java 21 + Spring Boot 3.5.6 + PostgreSQL 16 + Flyway
 - **Frontend**: Nuxt 3 + TypeScript
 - **Database**: PostgreSQL 16-alpine
 - **Deployment**: Docker Compose
@@ -12,11 +12,19 @@ Full-stack application for managing projects with a REST API backend and modern 
 ## Project Entity
 
 The application manages projects with the following fields:
+
+### API Response Fields (ProjectDto)
 - `id`: Unique identifier (auto-generated)
-- `name`: Project name (required)
-- `description`: Project description
-- `startDate`: Project start date
-- `endDate`: Project end date
+- `name`: Project name (required, 3-100 characters)
+- `description`: Project description (optional, max 1000 characters)
+- `startDate`: Project start date (required, today or future)
+- `endDate`: Project end date (required, future date)
+
+### Internal Entity Fields (hidden from API)
+- `createdAt`: Audit timestamp (auto-generated)
+- `updatedAt`: Audit timestamp (auto-updated)
+
+**Note**: The API uses DTOs to hide internal audit fields from external consumers.
 
 ## Directory Structure
 
@@ -54,6 +62,7 @@ Use the provided startup script for the easiest experience:
 This script will:
 - Check for Docker and Docker Compose installation
 - Detect port conflicts
+- Automatically detect dependency changes and force rebuilds when needed
 - Start all services with proper dependency handling
 - Verify service health and endpoint availability
 - Provide troubleshooting guidance if needed
@@ -94,11 +103,23 @@ docker compose up -d
 
 ## API Endpoints
 
-- `GET /api/projects` - Get all projects
-- `GET /api/projects/{id}` - Get project by ID
-- `POST /api/projects` - Create new project
-- `PUT /api/projects/{id}` - Update project
-- `DELETE /api/projects/{id}` - Delete project
+- `GET /api/projects` - Get all projects (returns ProjectDto array)
+- `GET /api/projects/{id}` - Get project by ID (returns ProjectDto)
+- `POST /api/projects` - Create new project (accepts ProjectCreateDto, returns ProjectDto)
+- `PUT /api/projects/{id}` - Update project (accepts ProjectUpdateDto, returns ProjectDto)
+- `DELETE /api/projects/{id}` - Delete project (returns 204 No Content)
+
+### Validation Rules
+- **Name**: Required, 3-100 characters
+- **Description**: Optional, max 1000 characters  
+- **Start Date**: Required, today or future
+- **End Date**: Required, future date
+- **Date Range**: End date must be after start date
+
+### Error Responses
+- `400 Bad Request`: Validation errors with detailed messages
+- `404 Not Found`: Project not found
+- `500 Internal Server Error`: Server errors
 
 ## Development
 
