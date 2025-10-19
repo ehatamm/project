@@ -22,7 +22,7 @@ public record ProjectCreateDto(
     
     @Schema(description = "Project end date", example = "2024-06-30", required = true)
     @NotNull(message = "End date is required")
-    @Future(message = "End date must be in the future")
+    @FutureOrPresent(message = "End date must be today or in the future")
     LocalDate endDate
 ) {
     @AssertTrue(message = "End date must be after start date")
