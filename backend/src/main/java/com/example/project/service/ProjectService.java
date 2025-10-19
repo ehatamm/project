@@ -1,9 +1,11 @@
 package com.example.project.service;
 
 import com.example.project.dto.ProjectCreateDto;
+import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.entity.Project;
 import com.example.project.exception.ProjectNotFoundException;
+import com.example.project.mapper.ProjectMapper;
 import com.example.project.repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class ProjectService {
     
     @Autowired
     private ProjectRepository projectRepository;
+    
+    @Autowired
+    private ProjectMapper projectMapper;
     
     public List<Project> getAllProjects() {
         log.info("Retrieving all projects from database");
@@ -39,7 +44,7 @@ public class ProjectService {
     
     public Project createProject(ProjectCreateDto projectDto) {
         log.info("Creating new project: {}", projectDto.name());
-        Project project = Project.fromCreateDto(projectDto);
+        Project project = projectMapper.projectCreateDtoToProject(projectDto);
         Project savedProject = projectRepository.save(project);
         log.info("Successfully created project with ID: {} and name: {}", 
                 savedProject.getId(), savedProject.getName());
@@ -54,17 +59,8 @@ public class ProjectService {
                     return new ProjectNotFoundException(id);
                 });
         
-        Project updatedProject = Project.builder()
-                .id(existingProject.getId())
-                .name(projectDto.name())
-                .description(projectDto.description())
-                .startDate(projectDto.startDate())
-                .endDate(projectDto.endDate())
-                .createdAt(existingProject.getCreatedAt())
-                .updatedAt(existingProject.getUpdatedAt())
-                .build();
-        
-        Project savedProject = projectRepository.save(updatedProject);
+        projectMapper.projectUpdateDtoToProject(projectDto, existingProject);
+        Project savedProject = projectRepository.save(existingProject);
         log.info("Successfully updated project with ID: {}", id);
         return savedProject;
     }
