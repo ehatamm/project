@@ -68,13 +68,8 @@ public class ProjectController {
             @Parameter(description = "Project ID", required = true, example = "1")
             @PathVariable Long id) {
         log.debug("API: GET /api/projects/{} - retrieving project", id);
-        try {
-            Project project = projectService.getProjectById(id);
-            return ResponseEntity.ok(projectMapper.projectToProjectDto(project));
-        } catch (ProjectNotFoundException e) {
-            log.debug("API: Project {} not found, returning 404", id);
-            return ResponseEntity.notFound().build();
-        }
+        Project project = projectService.getProjectById(id);
+        return ResponseEntity.ok(projectMapper.projectToProjectDto(project));
     }
     
     @Operation(summary = "Create new project", description = "Create a new project with the provided details")
