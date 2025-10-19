@@ -8,7 +8,11 @@
       </NuxtLink>
     </div>
 
-    <div v-if="projects.length === 0" style="padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
+    <div v-if="loading" style="padding: 20px; text-align: center;">
+      <p>Loading projects...</p>
+    </div>
+
+    <div v-else-if="projects.length === 0" style="padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
       <p>No projects found. Create your first project!</p>
     </div>
 
@@ -31,9 +35,10 @@
           </NuxtLink>
           <button
             @click="handleDelete(project.id!)"
+            :disabled="deletingId === project.id"
             style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;"
           >
-            Delete
+            {{ deletingId === project.id ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
       </div>
@@ -45,23 +50,34 @@
 import type { Project } from '~/types/project'
 
 const { getAllProjects, deleteProject } = useProjectApi()
+const { showErrorMessage } = useErrorHandler()
 const projects = ref<Project[]>([])
+const loading = ref(false)
+const deletingId = ref<number | null>(null)
 
 const loadProjects = async () => {
+  loading.value = true
   try {
     projects.value = await getAllProjects()
   } catch (error) {
+    showErrorMessage(error instanceof Error ? error.message : 'Failed to load projects')
     console.error('Failed to load projects:', error)
+  } finally {
+    loading.value = false
   }
 }
 
 const handleDelete = async (id: number) => {
   if (confirm('Are you sure you want to delete this project?')) {
+    deletingId.value = id
     try {
       await deleteProject(id)
       await loadProjects()
     } catch (error) {
+      showErrorMessage(error instanceof Error ? error.message : 'Failed to delete project')
       console.error('Failed to delete project:', error)
+    } finally {
+      deletingId.value = null
     }
   }
 }
@@ -70,3 +86,4 @@ onMounted(() => {
   loadProjects()
 })
 </script>
+

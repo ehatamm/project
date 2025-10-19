@@ -45,9 +45,10 @@
       <div style="display: flex; gap: 10px;">
         <button
           type="submit"
+          :disabled="loading"
           style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;"
         >
-          Create Project
+          {{ loading ? 'Creating...' : 'Create Project' }}
         </button>
         <NuxtLink
           to="/"
@@ -64,6 +65,7 @@
 import type { Project } from '~/types/project'
 
 const { createProject } = useProjectApi()
+const { showErrorMessage } = useErrorHandler()
 const router = useRouter()
 
 const project = ref<Project>({
@@ -73,12 +75,19 @@ const project = ref<Project>({
   endDate: ''
 })
 
+const loading = ref(false)
+
 const handleSubmit = async () => {
+  loading.value = true
+  
   try {
     await createProject(project.value)
     router.push('/')
   } catch (error) {
+    showErrorMessage(error instanceof Error ? error.message : 'Failed to create project')
     console.error('Failed to create project:', error)
+  } finally {
+    loading.value = false
   }
 }
 </script>

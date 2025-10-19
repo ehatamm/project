@@ -45,9 +45,10 @@
       <div style="display: flex; gap: 10px;">
         <button
           type="submit"
+          :disabled="loading"
           style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;"
         >
-          Update Project
+          {{ loading ? 'Updating...' : 'Update Project' }}
         </button>
         <NuxtLink
           to="/"
@@ -70,14 +71,17 @@ import type { Project } from '~/types/project'
 const route = useRoute()
 const router = useRouter()
 const { getProjectById, updateProject } = useProjectApi()
+const { showErrorMessage } = inject('errorHandler', { showErrorMessage: () => {} })
 
 const project = ref<Project | null>(null)
+const loading = ref(false)
 
 const loadProject = async () => {
   try {
     const id = Number(route.params.id)
     project.value = await getProjectById(id)
   } catch (error) {
+    showErrorMessage(error instanceof Error ? error.message : 'Failed to load project')
     console.error('Failed to load project:', error)
   }
 }
@@ -85,12 +89,16 @@ const loadProject = async () => {
 const handleSubmit = async () => {
   if (!project.value) return
   
+  loading.value = true
   try {
     const id = Number(route.params.id)
     await updateProject(id, project.value)
     router.push('/')
   } catch (error) {
+    showErrorMessage(error instanceof Error ? error.message : 'Failed to update project')
     console.error('Failed to update project:', error)
+  } finally {
+    loading.value = false
   }
 }
 
