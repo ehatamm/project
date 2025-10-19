@@ -5,6 +5,7 @@ import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.dto.ProblemDetailDto;
 import com.example.project.entity.Project;
+import com.example.project.mapper.ProjectMapper;
 import com.example.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +32,9 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
     
+    @Autowired
+    private ProjectMapper projectMapper;
+    
     @Operation(summary = "Get all projects", description = "Retrieve a list of all projects")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved projects",
@@ -41,7 +45,7 @@ public class ProjectController {
     public List<ProjectDto> getAllProjects() {
         log.debug("API: GET /api/projects - retrieving all projects");
         List<ProjectDto> projects = projectService.getAllProjects().stream()
-                .map(Project::toDto)
+                .map(projectMapper::projectToProjectDto)
                 .toList();
         return projects;
     }
@@ -64,7 +68,7 @@ public class ProjectController {
             @PathVariable Long id) {
         log.debug("API: GET /api/projects/{} - retrieving project", id);
         return projectService.getProjectById(id)
-                .map(project -> ResponseEntity.ok(project.toDto()))
+                .map(project -> ResponseEntity.ok(projectMapper.projectToProjectDto(project)))
                 .orElseGet(() -> {
                     log.debug("API: Project {} not found, returning 404", id);
                     return ResponseEntity.notFound().build();
@@ -89,7 +93,7 @@ public class ProjectController {
             @Valid @RequestBody ProjectCreateDto projectDto) {
         log.debug("API: POST /api/projects - creating project: {}", projectDto.name());
         Project createdProject = projectService.createProject(projectDto);
-        return createdProject.toDto();
+        return projectMapper.projectToProjectDto(createdProject);
     }
     
     @Operation(summary = "Update project", description = "Update an existing project with new details")
@@ -115,7 +119,7 @@ public class ProjectController {
             @Valid @RequestBody ProjectUpdateDto projectDto) {
         log.debug("API: PUT /api/projects/{} - updating project to: {}", id, projectDto.name());
         Project updatedProject = projectService.updateProject(id, projectDto);
-        return ResponseEntity.ok(updatedProject.toDto());
+        return ResponseEntity.ok(projectMapper.projectToProjectDto(updatedProject));
     }
     
     @Operation(summary = "Delete project", description = "Delete a project by its ID")
