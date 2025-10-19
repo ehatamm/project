@@ -14,10 +14,10 @@ public record ProblemDetailDto(
     
     @Schema(description = "Error title", example = "Validation Error")
     String title,
-    
-    @Schema(description = "HTTP status code", example = 400)
+
+    @Schema(description = "HTTP status code", example = "400")
     Integer status,
-    
+
     @Schema(description = "Error detail message", example = "Validation failed for one or more fields")
     String detail,
     
