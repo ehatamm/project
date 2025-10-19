@@ -2,10 +2,11 @@ package com.example.project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+
 import java.time.LocalDate;
 
-@Builder
 @Schema(description = "Project data transfer object")
+@Builder
 public record ProjectDto(
     @Schema(description = "Unique identifier of the project", example = "1")
     Long id,
