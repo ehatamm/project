@@ -3,6 +3,7 @@ package com.example.project.controller;
 import com.example.project.dto.ProjectCreateDto;
 import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
+import com.example.project.dto.ProblemDetailDto;
 import com.example.project.entity.Project;
 import com.example.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,7 +48,11 @@ public class ProjectController {
             content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ProjectDto.class))),
         @ApiResponse(responseCode = "404", description = "Project not found",
-            content = @Content)
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class)))
     })
     @GetMapping("/{id}")
     public ResponseEntity<ProjectDto> getProjectById(
@@ -63,8 +68,12 @@ public class ProjectController {
         @ApiResponse(responseCode = "200", description = "Project created successfully",
             content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ProjectDto.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid input data",
-            content = @Content)
+        @ApiResponse(responseCode = "400", description = "Validation error - invalid input data",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class)))
     })
     @PostMapping
     public ProjectDto createProject(
@@ -78,10 +87,15 @@ public class ProjectController {
         @ApiResponse(responseCode = "200", description = "Project updated successfully",
             content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ProjectDto.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid input data",
-            content = @Content),
+        @ApiResponse(responseCode = "400", description = "Validation error - invalid input data",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class))),
         @ApiResponse(responseCode = "404", description = "Project not found",
-            content = @Content)
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class)))
     })
     @PutMapping("/{id}")
     public ResponseEntity<ProjectDto> updateProject(
@@ -89,12 +103,8 @@ public class ProjectController {
             @PathVariable Long id, 
             @Parameter(description = "Project update data", required = true)
             @Valid @RequestBody ProjectUpdateDto projectDto) {
-        try {
-            Project updatedProject = projectService.updateProject(id, projectDto);
-            return ResponseEntity.ok(updatedProject.toDto());
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Project updatedProject = projectService.updateProject(id, projectDto);
+        return ResponseEntity.ok(updatedProject.toDto());
     }
     
     @Operation(summary = "Delete project", description = "Delete a project by its ID")
@@ -102,7 +112,11 @@ public class ProjectController {
         @ApiResponse(responseCode = "204", description = "Project deleted successfully",
             content = @Content),
         @ApiResponse(responseCode = "404", description = "Project not found",
-            content = @Content)
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+            content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetailDto.class)))
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(
