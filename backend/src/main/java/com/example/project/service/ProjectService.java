@@ -3,6 +3,7 @@ package com.example.project.service;
 import com.example.project.dto.ProjectCreateDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.entity.Project;
+import com.example.project.exception.ProjectNotFoundException;
 import com.example.project.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class ProjectService {
     
     public Project updateProject(Long id, ProjectUpdateDto projectDto) {
         Project existingProject = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+                .orElseThrow(() -> new ProjectNotFoundException(id));
         
         Project updatedProject = Project.builder()
                 .id(existingProject.getId())
@@ -47,6 +48,9 @@ public class ProjectService {
     }
     
     public void deleteProject(Long id) {
+        if (!projectRepository.existsById(id)) {
+            throw new ProjectNotFoundException(id);
+        }
         projectRepository.deleteById(id);
     }
 }
