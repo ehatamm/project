@@ -62,10 +62,23 @@ Use the provided startup script for the easiest experience:
 This script will:
 - Check for Docker and Docker Compose installation
 - Detect port conflicts
-- Automatically detect dependency changes and force rebuilds when needed
+- **Automatically detect dependency AND source code changes** and force rebuilds when needed
 - Start all services with proper dependency handling
 - Verify service health and endpoint availability
 - Provide troubleshooting guidance if needed
+
+**Enhanced Change Detection:**
+- Detects changes in `pom.xml` and `package.json` (dependencies)
+- Detects changes in Java source files (`.java`)
+- Detects changes in frontend source files (`.vue`, `.ts`, `.js`)
+- Forces complete rebuild when any changes are detected
+
+**Script Options:**
+```bash
+./start.sh --force-rebuild  # Force rebuild even if no changes detected
+./start.sh --clear-cache    # Clear all caches before starting
+./start.sh --help          # Show all available options
+```
 
 Stop all services:
 
@@ -100,6 +113,20 @@ docker compose up -d
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
 - **Database**: localhost:5432
+
+## API Documentation
+
+The API includes comprehensive OpenAPI/Swagger documentation:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/api-docs
+
+The documentation includes:
+- Complete endpoint descriptions with examples
+- Request/response schemas with validation rules
+- Interactive testing interface
+- Error response documentation
+- Data model descriptions
 
 ## API Endpoints
 
