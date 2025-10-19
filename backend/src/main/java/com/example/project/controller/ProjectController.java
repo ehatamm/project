@@ -1,7 +1,11 @@
 package com.example.project.controller;
 
+import com.example.project.dto.ProjectCreateDto;
+import com.example.project.dto.ProjectDto;
+import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.entity.Project;
 import com.example.project.service.ProjectService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,27 +21,29 @@ public class ProjectController {
     private ProjectService projectService;
     
     @GetMapping
-    public List<Project> getAllProjects() {
-        return projectService.getAllProjects();
+    public List<ProjectDto> getAllProjects() {
+        return projectService.getAllProjects().stream()
+                .map(Project::toDto)
+                .toList();
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
+    public ResponseEntity<ProjectDto> getProjectById(@PathVariable Long id) {
         return projectService.getProjectById(id)
-                .map(ResponseEntity::ok)
+                .map(project -> ResponseEntity.ok(project.toDto()))
                 .orElse(ResponseEntity.notFound().build());
     }
     
     @PostMapping
-    public Project createProject(@RequestBody Project project) {
-        return projectService.createProject(project);
+    public ProjectDto createProject(@Valid @RequestBody ProjectCreateDto projectDto) {
+        return projectService.createProject(projectDto).toDto();
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(@PathVariable Long id, @RequestBody Project projectDetails) {
+    public ResponseEntity<ProjectDto> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectUpdateDto projectDto) {
         try {
-            Project updatedProject = projectService.updateProject(id, projectDetails);
-            return ResponseEntity.ok(updatedProject);
+            Project updatedProject = projectService.updateProject(id, projectDto);
+            return ResponseEntity.ok(updatedProject.toDto());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
