@@ -5,7 +5,6 @@ import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.dto.ProblemDetailDto;
 import com.example.project.entity.Project;
-import com.example.project.exception.ProjectNotFoundException;
 import com.example.project.mapper.ProjectMapper;
 import com.example.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
