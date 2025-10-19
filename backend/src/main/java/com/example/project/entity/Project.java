@@ -1,8 +1,5 @@
 package com.example.project.entity;
 
-import com.example.project.dto.ProjectCreateDto;
-import com.example.project.dto.ProjectDto;
-import com.example.project.dto.ProjectUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -47,34 +44,5 @@ public class Project {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    // Mapping methods
-    public static Project fromCreateDto(ProjectCreateDto dto) {
-        return Project.builder()
-                .name(dto.name())
-                .description(dto.description())
-                .startDate(dto.startDate())
-                .endDate(dto.endDate())
-                .build();
-    }
-    
-    public static Project fromUpdateDto(ProjectUpdateDto dto) {
-        return Project.builder()
-                .name(dto.name())
-                .description(dto.description())
-                .startDate(dto.startDate())
-                .endDate(dto.endDate())
-                .build();
-    }
-    
-    public ProjectDto toDto() {
-        return ProjectDto.builder()
-                .id(this.id)
-                .name(this.name)
-                .description(this.description)
-                .startDate(this.startDate)
-                .endDate(this.endDate)
-                .build();
     }
 }
