@@ -22,6 +22,8 @@ guardrails/
 .dev-context.md
 next-steps.md
 next-steps-be.md
+wont-do.md
+work-done.md
 
 # Docker cache
 .docker-cache/
