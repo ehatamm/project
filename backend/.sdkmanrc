@@ -1,0 +1,3 @@
+# SDKMAN configuration for this project
+java=21.0.8-amzn
+maven=3.9.11
