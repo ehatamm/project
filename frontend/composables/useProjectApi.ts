@@ -4,14 +4,22 @@ export const useProjectApi = () => {
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase
 
+  const handleResponse = async (response: Response) => {
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API Error ${response.status}: ${errorText}`)
+    }
+    return response.json()
+  }
+
   const getAllProjects = async (): Promise<Project[]> => {
     const response = await fetch(`${apiBase}/api/projects`)
-    return response.json()
+    return handleResponse(response)
   }
 
   const getProjectById = async (id: number): Promise<Project> => {
     const response = await fetch(`${apiBase}/api/projects/${id}`)
-    return response.json()
+    return handleResponse(response)
   }
 
   const createProject = async (project: Project): Promise<Project> => {
@@ -20,7 +28,7 @@ export const useProjectApi = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(project)
     })
-    return response.json()
+    return handleResponse(response)
   }
 
   const updateProject = async (id: number, project: Project): Promise<Project> => {
@@ -29,13 +37,17 @@ export const useProjectApi = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(project)
     })
-    return response.json()
+    return handleResponse(response)
   }
 
   const deleteProject = async (id: number): Promise<void> => {
-    await fetch(`${apiBase}/api/projects/${id}`, {
+    const response = await fetch(`${apiBase}/api/projects/${id}`, {
       method: 'DELETE'
     })
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API Error ${response.status}: ${errorText}`)
+    }
   }
 
   return {
