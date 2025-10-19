@@ -1,6 +1,6 @@
 package com.example.project.exception;
 
-import com.example.project.exception.ProjectNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +20,7 @@ import java.util.Map;
  * following RFC7807 Problem+JSON standard.
  */
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     
     private static final String PROBLEM_BASE_URI = "/problems";
@@ -99,9 +100,7 @@ public class GlobalExceptionHandler {
         problem.setProperty("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         problem.setProperty("path", request.getDescription(false).replace("uri=", ""));
         
-        // Log the actual exception for debugging
-        System.err.println("Unexpected error: " + ex.getMessage());
-        ex.printStackTrace();
+        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.List;
 @RequestMapping("/api/projects")
 @CrossOrigin(origins = "*")
 @Tag(name = "Projects", description = "Project management API endpoints")
+@Slf4j
 public class ProjectController {
     
     @Autowired
@@ -37,9 +39,11 @@ public class ProjectController {
     })
     @GetMapping
     public List<ProjectDto> getAllProjects() {
-        return projectService.getAllProjects().stream()
+        log.debug("API: GET /api/projects - retrieving all projects");
+        List<ProjectDto> projects = projectService.getAllProjects().stream()
                 .map(Project::toDto)
                 .toList();
+        return projects;
     }
     
     @Operation(summary = "Get project by ID", description = "Retrieve a specific project by its ID")
@@ -58,9 +62,13 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> getProjectById(
             @Parameter(description = "Project ID", required = true, example = "1")
             @PathVariable Long id) {
+        log.debug("API: GET /api/projects/{} - retrieving project", id);
         return projectService.getProjectById(id)
                 .map(project -> ResponseEntity.ok(project.toDto()))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> {
+                    log.debug("API: Project {} not found, returning 404", id);
+                    return ResponseEntity.notFound().build();
+                });
     }
     
     @Operation(summary = "Create new project", description = "Create a new project with the provided details")
@@ -79,7 +87,9 @@ public class ProjectController {
     public ProjectDto createProject(
             @Parameter(description = "Project creation data", required = true)
             @Valid @RequestBody ProjectCreateDto projectDto) {
-        return projectService.createProject(projectDto).toDto();
+        log.debug("API: POST /api/projects - creating project: {}", projectDto.name());
+        Project createdProject = projectService.createProject(projectDto);
+        return createdProject.toDto();
     }
     
     @Operation(summary = "Update project", description = "Update an existing project with new details")
@@ -103,6 +113,7 @@ public class ProjectController {
             @PathVariable Long id, 
             @Parameter(description = "Project update data", required = true)
             @Valid @RequestBody ProjectUpdateDto projectDto) {
+        log.debug("API: PUT /api/projects/{} - updating project to: {}", id, projectDto.name());
         Project updatedProject = projectService.updateProject(id, projectDto);
         return ResponseEntity.ok(updatedProject.toDto());
     }
@@ -122,6 +133,7 @@ public class ProjectController {
     public ResponseEntity<Void> deleteProject(
             @Parameter(description = "Project ID", required = true, example = "1")
             @PathVariable Long id) {
+        log.debug("API: DELETE /api/projects/{} - deleting project", id);
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
