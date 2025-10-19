@@ -1,7 +1,6 @@
 package com.example.project.service;
 
 import com.example.project.dto.ProjectCreateDto;
-import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.entity.Project;
 import com.example.project.exception.ProjectNotFoundException;
@@ -31,15 +30,16 @@ public class ProjectService {
         return projects;
     }
     
-    public Optional<Project> getProjectById(Long id) {
+    public Project getProjectById(Long id) {
         log.debug("Looking up project with ID: {}", id);
         Optional<Project> project = projectRepository.findById(id);
         if (project.isPresent()) {
             log.info("Found project with ID: {} and name: {}", id, project.get().getName());
+            return project.get();
         } else {
             log.warn("Project not found with ID: {}", id);
+            throw new ProjectNotFoundException("Project not found with id: " + id);
         }
-        return project;
     }
     
     public Project createProject(ProjectCreateDto projectDto) {

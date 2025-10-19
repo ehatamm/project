@@ -5,6 +5,7 @@ import com.example.project.dto.ProjectDto;
 import com.example.project.dto.ProjectUpdateDto;
 import com.example.project.dto.ProblemDetailDto;
 import com.example.project.entity.Project;
+import com.example.project.exception.ProjectNotFoundException;
 import com.example.project.mapper.ProjectMapper;
 import com.example.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,12 +68,13 @@ public class ProjectController {
             @Parameter(description = "Project ID", required = true, example = "1")
             @PathVariable Long id) {
         log.debug("API: GET /api/projects/{} - retrieving project", id);
-        return projectService.getProjectById(id)
-                .map(project -> ResponseEntity.ok(projectMapper.projectToProjectDto(project)))
-                .orElseGet(() -> {
-                    log.debug("API: Project {} not found, returning 404", id);
-                    return ResponseEntity.notFound().build();
-                });
+        try {
+            Project project = projectService.getProjectById(id);
+            return ResponseEntity.ok(projectMapper.projectToProjectDto(project));
+        } catch (ProjectNotFoundException e) {
+            log.debug("API: Project {} not found, returning 404", id);
+            return ResponseEntity.notFound().build();
+        }
     }
     
     @Operation(summary = "Create new project", description = "Create a new project with the provided details")
