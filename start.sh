@@ -22,33 +22,55 @@ clear_caches() {
     echo "✓ Caches cleared"
 }
 
-# Function to check if dependencies have changed
+# Function to check if dependencies or source code have changed
 check_dependency_changes() {
     local rebuild_needed=false
     
     # Create cache directory if it doesn't exist
     mkdir -p "$CACHE_DIR"
     
-    # Check backend dependencies
+    # Check backend dependencies and source code
     if [ -f "backend/pom.xml" ]; then
-        local backend_hash=$(md5sum backend/pom.xml | cut -d' ' -f1)
-        local backend_cache="$CACHE_DIR/backend-deps.md5"
+        local backend_deps_hash=$(md5sum backend/pom.xml | cut -d' ' -f1)
+        local backend_deps_cache="$CACHE_DIR/backend-deps.md5"
         
-        if [ ! -f "$backend_cache" ] || [ "$backend_hash" != "$(cat "$backend_cache" 2>/dev/null)" ]; then
+        # Check if dependencies changed
+        if [ ! -f "$backend_deps_cache" ] || [ "$backend_deps_hash" != "$(cat "$backend_deps_cache" 2>/dev/null)" ]; then
             echo "🔄 Backend dependencies changed - forcing complete rebuild"
-            echo "$backend_hash" > "$backend_cache"
+            echo "$backend_deps_hash" > "$backend_deps_cache"
+            rebuild_needed=true
+        fi
+        
+        # Check if source code changed (Java files)
+        local backend_src_hash=$(find backend/src -name "*.java" -type f -exec md5sum {} \; 2>/dev/null | md5sum | cut -d' ' -f1)
+        local backend_src_cache="$CACHE_DIR/backend-src.md5"
+        
+        if [ ! -f "$backend_src_cache" ] || [ "$backend_src_hash" != "$(cat "$backend_src_cache" 2>/dev/null)" ]; then
+            echo "🔄 Backend source code changed - forcing rebuild"
+            echo "$backend_src_hash" > "$backend_src_cache"
             rebuild_needed=true
         fi
     fi
     
-    # Check frontend dependencies
+    # Check frontend dependencies and source code
     if [ -f "frontend/package.json" ]; then
-        local frontend_hash=$(md5sum frontend/package.json | cut -d' ' -f1)
-        local frontend_cache="$CACHE_DIR/frontend-deps.md5"
+        local frontend_deps_hash=$(md5sum frontend/package.json | cut -d' ' -f1)
+        local frontend_deps_cache="$CACHE_DIR/frontend-deps.md5"
         
-        if [ ! -f "$frontend_cache" ] || [ "$frontend_hash" != "$(cat "$frontend_cache" 2>/dev/null)" ]; then
+        # Check if dependencies changed
+        if [ ! -f "$frontend_deps_cache" ] || [ "$frontend_deps_hash" != "$(cat "$frontend_deps_cache" 2>/dev/null)" ]; then
             echo "🔄 Frontend dependencies changed - forcing complete rebuild"
-            echo "$frontend_hash" > "$frontend_cache"
+            echo "$frontend_deps_hash" > "$frontend_deps_cache"
+            rebuild_needed=true
+        fi
+        
+        # Check if source code changed (Vue, TS, JS files)
+        local frontend_src_hash=$(find frontend -name "*.vue" -o -name "*.ts" -o -name "*.js" -o -name "*.json" | grep -v node_modules | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
+        local frontend_src_cache="$CACHE_DIR/frontend-src.md5"
+        
+        if [ ! -f "$frontend_src_cache" ] || [ "$frontend_src_hash" != "$(cat "$frontend_src_cache" 2>/dev/null)" ]; then
+            echo "🔄 Frontend source code changed - forcing rebuild"
+            echo "$frontend_src_hash" > "$frontend_src_cache"
             rebuild_needed=true
         fi
     fi
@@ -69,6 +91,22 @@ restart_service() {
 if [ "$1" = "--clear-cache" ] || [ "$1" = "-c" ]; then
     clear_caches
     echo ""
+elif [ "$1" = "--force-rebuild" ] || [ "$1" = "-f" ]; then
+    echo "🔄 Force rebuild requested..."
+    FORCE_REBUILD=true
+elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -c, --clear-cache     Clear all caches before starting"
+    echo "  -f, --force-rebuild   Force rebuild even if no changes detected"
+    echo "  -h, --help           Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                   # Normal start with change detection"
+    echo "  $0 --force-rebuild  # Force rebuild all containers"
+    echo "  $0 --clear-cache    # Clear caches and start"
+    exit 0
 fi
 
 echo "======================================"
@@ -105,14 +143,18 @@ if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
 fi
 echo ""
 
-# Check if dependencies have changed
-echo "Checking for dependency changes..."
-REBUILD_NEEDED=$(check_dependency_changes)
+# Check if dependencies or source code have changed
+echo "Checking for dependency and source code changes..."
+if [ "$FORCE_REBUILD" = "true" ]; then
+    REBUILD_NEEDED="true"
+else
+    REBUILD_NEEDED=$(check_dependency_changes)
+fi
 
 # Start the application
 echo "Starting all services..."
 if [ "$REBUILD_NEEDED" = "true" ]; then
-    echo "🔄 Dependencies changed - forcing complete rebuild with fresh dependencies..."
+    echo "🔄 Dependencies or source code changed - forcing complete rebuild..."
     echo "This may take 3-5 minutes..."
     
     # Stop services first
@@ -222,6 +264,11 @@ echo "  View logs:   docker compose -f \"$COMPOSE_FILE\" logs -f"
 echo "  API logs:    docker compose -f \"$COMPOSE_FILE\" logs -f api"
 echo "  DB logs:     docker compose -f \"$COMPOSE_FILE\" logs -f db"
 echo "  Status:      docker compose -f \"$COMPOSE_FILE\" ps"
+echo ""
+echo "Start Script Options:"
+echo "  ./start.sh --force-rebuild  # Force rebuild all containers"
+echo "  ./start.sh --clear-cache    # Clear caches and start"
+echo "  ./start.sh --help          # Show all options"
 echo ""
 echo "Troubleshooting:"
 echo "  If services fail to start, see TROUBLESHOOTING.md"
