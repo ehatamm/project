@@ -5,6 +5,7 @@ This directory contains comprehensive documentation for the Project Management A
 ## Documentation Structure
 
 - **[Architecture](architecture.md)** - Technology stack, directory structure, and service architecture
+- **[Frontend Architecture](frontend-architecture.md)** - Detailed frontend component structure and patterns
 - **[Data Model](data-model.md)** - Project entity fields, validation rules, and DTOs
 - **[API Reference](api-reference.md)** - Complete API documentation with endpoints and examples
 - **[Development Guide](development.md)** - Environment setup, running services, and development workflows
@@ -28,7 +29,7 @@ This directory contains comprehensive documentation for the Project Management A
 
 This is a full-stack application for managing projects with:
 - **Spring Boot** REST API backend with PostgreSQL
-- **Nuxt 3** frontend with TypeScript
+- **Nuxt 3** frontend with TypeScript and Vuetify 3
 - **Docker Compose** orchestration for easy development
 
-The application provides CRUD operations for project management with comprehensive validation and error handling.
+The application provides CRUD operations for project management with comprehensive validation, error handling, and a modern Material Design interface.

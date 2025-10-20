@@ -45,6 +45,28 @@ cd frontend
 docker compose up -d
 ```
 
+## Frontend Architecture
+
+### Dependencies
+The frontend includes:
+- **Nuxt 3** - Vue.js framework
+- **Vuetify 3** - Material Design component library
+- **Material Design Icons** - Icon system
+- **TypeScript** - Type safety
+
+### Component Structure
+- **Pages**: Main application pages (`pages/index.vue`)
+- **Components**: Reusable Vuetify components in `components/`
+- **Composables**: Business logic in `composables/`
+- **Types**: TypeScript definitions in `types/`
+- **Plugins**: Vuetify configuration in `plugins/`
+
+### Development Patterns
+- **Composables**: Use for business logic and state management
+- **Components**: Vuetify-based UI components with proper props/emits
+- **Error Handling**: Global error management via `useErrorHandler`
+- **API Layer**: Centralized API calls via `useProjectApi`
+
 ## Manual Startup
 
 Start all services manually:
