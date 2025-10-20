@@ -10,11 +10,14 @@
     "start": "node .output/server/index.mjs"
   },
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "nuxt": "^3.13.0",
     "vue": "^3.4.0",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.0",
+    "vuetify": "^3.7.0"
   },
   "devDependencies": {
+    "sass": "^1.93.2",
     "typescript": "^5.6.0"
   }
 }
