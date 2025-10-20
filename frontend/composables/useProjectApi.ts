@@ -69,7 +69,29 @@ export const useProjectApi = () => {
     const response = await fetch(`${apiBase}/api/projects/${id}`, {
       method: 'DELETE'
     })
-    return handleApiResponse(response)
+    
+    if (!response.ok) {
+      let errorMessage = `API Error ${response.status}`
+      
+      try {
+        const errorData: ApiError = await response.json()
+        errorMessage = errorData.detail || errorData.title || errorMessage
+        
+        if (errorData.fieldErrors) {
+          const fieldErrors = Object.entries(errorData.fieldErrors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join(', ')
+          errorMessage += ` (${fieldErrors})`
+        }
+      } catch {
+        // If we can't parse the error, use the status text
+        errorMessage = response.statusText || errorMessage
+      }
+      
+      throw new Error(errorMessage)
+    }
+    
+    return
   }
 
   return {
