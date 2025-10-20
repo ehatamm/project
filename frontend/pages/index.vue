@@ -16,32 +16,45 @@
       <p>No projects found. Create your first project!</p>
     </div>
 
-    <div v-else style="display: grid; gap: 20px;">
-      <div
-        v-for="project in projects"
-        :key="project.id"
-        style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #fff;"
-      >
-        <h3>{{ project.name }}</h3>
-        <p>{{ project.description }}</p>
-        <p><strong>Start Date:</strong> {{ project.startDate }}</p>
-        <p><strong>End Date:</strong> {{ project.endDate }}</p>
-        <div style="margin-top: 10px;">
-          <NuxtLink
-            :to="`/projects/${project.id}/edit`"
-            style="padding: 8px 16px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px; display: inline-block;"
+    <div v-else>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+        <thead>
+          <tr style="background-color: #f8f9fa;">
+            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Name</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Description</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Start Date</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">End Date</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 1px solid #ddd;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="project in projects"
+            :key="project.id"
+            style="border-bottom: 1px solid #eee;"
           >
-            Edit
-          </NuxtLink>
-          <button
-            @click="handleDelete(project.id!)"
-            :disabled="deletingId === project.id"
-            style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;"
-          >
-            {{ deletingId === project.id ? 'Deleting...' : 'Delete' }}
-          </button>
-        </div>
-      </div>
+            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.name }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.description }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.startDate }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.endDate }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+              <NuxtLink
+                :to="`/projects/${project.id}/edit`"
+                style="padding: 6px 12px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-right: 8px; display: inline-block; font-size: 14px;"
+              >
+                Edit
+              </NuxtLink>
+              <button
+                @click="handleDelete(project.id!)"
+                :disabled="deletingId === project.id"
+                style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
+              >
+                {{ deletingId === project.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
