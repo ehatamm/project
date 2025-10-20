@@ -1,99 +1,160 @@
 <template>
-  <div style="padding: 20px; font-family: Arial, sans-serif;">
-    <h1>Project Management</h1>
-    
-    <div style="margin-bottom: 20px;">
-      <NuxtLink to="/projects/create" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
-        Create New Project
-      </NuxtLink>
-    </div>
+  <v-app>
+    <v-app-bar
+      color="primary"
+      elevation="4"
+    >
+      <v-app-bar-title class="text-h5 font-weight-bold">
+        <v-icon class="mr-2" color="on-primary">mdi-folder-multiple</v-icon>
+        Project Management
+      </v-app-bar-title>
+      <v-spacer></v-spacer>
+      
+      <!-- Theme Toggle -->
+      <v-tooltip text="Toggle Theme">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon="mdi-theme-light-dark"
+            variant="text"
+            color="primary"
+            class="mr-2"
+          ></v-btn>
+        </template>
+      </v-tooltip>
+      
+      <!-- Create Project Button -->
+      <v-btn
+        color="primary"
+        variant="elevated"
+        prepend-icon="mdi-plus"
+        @click="openCreateModal"
+        class="font-weight-bold"
+        elevation="2"
+      >
+        New Project
+      </v-btn>
+    </v-app-bar>
 
-    <div v-if="loading" style="padding: 20px; text-align: center;">
-      <p>Loading projects...</p>
-    </div>
+    <v-main>
+      <v-container fluid class="pa-6">
+        <v-row>
+          <v-col cols="12">
+            <v-card
+              elevation="8"
+              rounded="xl"
+              class="pa-6"
+            >
+              <v-card-title class="text-h4 mb-4 text-primary font-weight-bold">
+                <v-icon class="mr-3" size="large" color="primary">mdi-view-dashboard</v-icon>
+                Project Dashboard
+                <v-chip class="ml-3" color="primary" size="small">
+                  Light Mode
+                </v-chip>
+              </v-card-title>
+              
+              <v-card-subtitle class="text-h6 mb-6 on-surface">
+                Manage and track your projects efficiently
+              </v-card-subtitle>
 
-    <div v-else-if="projects.length === 0" style="padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
-      <p>No projects found. Create your first project!</p>
-    </div>
-
-    <div v-else>
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
-        <thead>
-          <tr style="background-color: #f8f9fa;">
-            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Name</th>
-            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Description</th>
-            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">Start Date</th>
-            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">End Date</th>
-            <th style="padding: 12px; text-align: center; border-bottom: 1px solid #ddd;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="project in projects"
-            :key="project.id"
-            style="border-bottom: 1px solid #eee;"
-          >
-            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.name }}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.description }}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.startDate }}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ project.endDate }}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
-              <NuxtLink
-                :to="`/projects/${project.id}/edit`"
-                style="padding: 6px 12px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-right: 8px; display: inline-block; font-size: 14px;"
+              <ProjectTable
+                :headers="headers"
+                :items="projects"
+                :loading="loading"
+                empty-message="No projects found. Create your first project to get started!"
               >
-                Edit
-              </NuxtLink>
-              <button
-                @click="handleDelete(project.id!)"
-                :disabled="deletingId === project.id"
-                style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
-              >
-                {{ deletingId === project.id ? 'Deleting...' : 'Delete' }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+                <template #item.actions="{ item }">
+                  <TableActions
+                    :item="item"
+                    :is-deleting="deletingId === item.id"
+                    @edit="openEditModal"
+                    @delete="handleDelete"
+                  />
+                </template>
+              </ProjectTable>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+
+    <!-- Create Project Modal -->
+    <v-dialog v-model="createModalOpen" max-width="700px" persistent>
+      <v-card elevation="12" rounded="xl">
+        <v-card-title class="text-h4 pa-6 pb-2 text-primary font-weight-bold">
+          <v-icon class="mr-3" size="large" color="primary">mdi-plus-circle</v-icon>
+          Create New Project
+        </v-card-title>
+        <v-card-subtitle class="text-h6 pa-6 pt-0 on-surface">
+          Fill in the details to create a new project
+        </v-card-subtitle>
+        <v-card-text class="pa-6 pt-2">
+          <ProjectFormVuetify
+            submit-text="Create Project"
+            submit-loading-text="Creating..."
+            :loading="createLoading"
+            @submit="handleCreate"
+            @cancel="closeCreateModal"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- Edit Project Modal -->
+    <v-dialog v-model="editModalOpen" max-width="700px" persistent>
+      <v-card elevation="12" rounded="xl">
+        <v-card-title class="text-h4 pa-6 pb-2 text-primary font-weight-bold">
+          <v-icon class="mr-3" size="large" color="primary">mdi-pencil-circle</v-icon>
+          Edit Project
+        </v-card-title>
+        <v-card-subtitle class="text-h6 pa-6 pt-0 on-surface">
+          Update the project details
+        </v-card-subtitle>
+        <v-card-text class="pa-6 pt-2">
+          <ProjectFormVuetify
+            :initial-data="editingProject"
+            submit-text="Update Project"
+            submit-loading-text="Updating..."
+            :loading="editLoading"
+            @submit="handleEdit"
+            @cancel="closeEditModal"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </v-app>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import type { Project } from '~/types/project'
 
-const { getAllProjects, deleteProject } = useProjectApi()
-const { showErrorMessage } = useErrorHandler()
-const projects = ref<Project[]>([])
-const loading = ref(false)
-const deletingId = ref<number | null>(null)
+const {
+  projects,
+  loading,
+  deletingId,
+  createModalOpen,
+  editModalOpen,
+  createLoading,
+  editLoading,
+  editingProject,
+  loadProjects,
+  handleDelete,
+  handleCreate,
+  handleEdit,
+  openCreateModal,
+  closeCreateModal,
+  openEditModal,
+  closeEditModal
+} = useProjectManagement()
 
-const loadProjects = async () => {
-  loading.value = true
-  try {
-    projects.value = await getAllProjects()
-  } catch (error) {
-    showErrorMessage(error instanceof Error ? error.message : 'Failed to load projects')
-    console.error('Failed to load projects:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleDelete = async (id: number) => {
-  if (confirm('Are you sure you want to delete this project?')) {
-    deletingId.value = id
-    try {
-      await deleteProject(id)
-      await loadProjects()
-    } catch (error) {
-      showErrorMessage(error instanceof Error ? error.message : 'Failed to delete project')
-      console.error('Failed to delete project:', error)
-    } finally {
-      deletingId.value = null
-    }
-  }
-}
+const headers = [
+  { title: 'Name', key: 'name' },
+  { title: 'Description', key: 'description' },
+  { title: 'Start Date', key: 'startDate' },
+  { title: 'End Date', key: 'endDate' },
+  { title: 'Actions', key: 'actions', sortable: false }
+]
 
 onMounted(() => {
   loadProjects()
